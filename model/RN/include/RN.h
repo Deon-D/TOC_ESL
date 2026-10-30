@@ -15,7 +15,7 @@ public:
     RN(string moduleName,
        const soc::EnvCfg& envCfg,
        uint32_t nodeId,
-       uint32_t memoryNodeId);
+       uint32_t homeNodeId);
 
     void work() override;
     void xfer() override;
@@ -36,7 +36,7 @@ private:
 
     chi::CHIPort chiPort;
     uint32_t nodeId = 0;
-    uint32_t memoryNodeId = 0;
+    uint32_t homeNodeId = 0;
     State state = State::idle;
     State nextState = State::idle;
     uint64_t readAddress = 0;

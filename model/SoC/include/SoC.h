@@ -2,6 +2,7 @@
 
 #include "BaseModule.h"
 #include "EnvCfg.h"
+#include "HA.h"
 #include "Memory.h"
 #include "RN.h"
 
@@ -25,13 +26,15 @@ public:
     const chi::CHIDatFlit& getReadData() const;
 
     const rn::RN& getRn() const;
+    const ha::HA& getHa() const;
     const memory::Memory& getMemory() const;
 
 private:
     EnvCfg envCfg;
     rn::RN rnModel;
+    ha::HA haModel;
     memory::Memory memoryModel;
-    array<common::BaseModule*, 2> topModules;
+    array<common::BaseModule*, 3> topModules;
 };
 
 }  // namespace toc::soc

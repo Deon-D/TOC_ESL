@@ -10,10 +10,10 @@ using namespace std;
 RN::RN(string moduleName,
        const soc::EnvCfg& envCfg,
        uint32_t nodeId,
-       uint32_t memoryNodeId)
+       uint32_t homeNodeId)
     : BaseModule(move(moduleName), envCfg),
       nodeId(nodeId),
-      memoryNodeId(memoryNodeId) {}
+      homeNodeId(homeNodeId) {}
 
 void RN::work() {
     nextState = state;
@@ -27,7 +27,7 @@ void RN::work() {
 
         if (chiPort.hasReqCredit()) {
             chi::CHIReqFlit request;
-            request.tgtId = memoryNodeId;
+            request.tgtId = homeNodeId;
             request.srcId = nodeId;
             request.txnId = readTxnId;
             request.opcode = CHI_REQ_READ_NO_SNP;
@@ -45,6 +45,8 @@ void RN::work() {
         }
         if (data.opcode != CHI_DAT_COMP_DATA ||
             data.tgtId != nodeId ||
+            data.srcId != homeNodeId ||
+            data.homeNid != homeNodeId ||
             data.txnId != readTxnId) {
             throw runtime_error("RN received a DAT flit that does not match its read request");
         }

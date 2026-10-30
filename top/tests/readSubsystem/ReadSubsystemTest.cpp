@@ -22,15 +22,16 @@ void verifyPreloadedRead() {
     soc::SoC soc;
     soc.preloadMemory(0x1000, expectedLine);
     require(soc.issueRead(0x1000, 0x35), "RN rejected an aligned read request");
-    require(soc.runUntilReadComplete(16), "RN read did not complete within 16 cycles");
+    require(soc.runUntilReadComplete(24), "RN read did not complete within 24 cycles");
 
     const auto& data = soc.getReadData();
-    require(soc.getCycle() == 5, "minimal read completed on an unexpected cycle");
-    require(data.opcode == CHI_DAT_COMP_DATA, "Memory returned the wrong DAT opcode");
+    require(soc.getCycle() == 9, "RN-HA-Memory read completed on an unexpected cycle");
+    require(data.opcode == CHI_DAT_COMP_DATA, "HA returned the wrong DAT opcode");
     require(data.srcId == 0x02 && data.tgtId == 0x01,
-            "Memory returned incorrect source or target node IDs");
-    require(data.txnId == 0x35, "Memory did not preserve the request transaction ID");
-    require(data.data == expectedLine, "Memory returned incorrect cache-line data");
+            "HA returned incorrect source or target node IDs");
+    require(data.homeNid == 0x02, "HA returned an incorrect home node ID");
+    require(data.txnId == 0x35, "HA did not preserve the request transaction ID");
+    require(data.data == expectedLine, "RN-HA-Memory path returned incorrect cache-line data");
     require(data.byteEnable[0] == 0xFFFFFFFF && data.byteEnable[1] == 0xFFFFFFFF,
             "Memory did not mark the full cache line valid");
 }
@@ -38,7 +39,7 @@ void verifyPreloadedRead() {
 void verifyUninitializedReadReturnsZero() {
     soc::SoC soc;
     require(soc.issueRead(0x2000, 0x44), "RN rejected an uninitialized aligned read");
-    require(soc.runUntilReadComplete(16), "zero-filled read did not complete");
+    require(soc.runUntilReadComplete(24), "zero-filled read did not complete");
 
     memory::MemoryLine emptyLine = {0};
     require(soc.getReadData().data == emptyLine,

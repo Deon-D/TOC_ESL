@@ -8,10 +8,14 @@ using namespace std;
 
 SoC::SoC()
     : rnModel("rn", envCfg, 0x01, 0x02),
-      memoryModel("memory", envCfg, 0x02),
-      topModules{&rnModel, &memoryModel} {
-    if (!rnModel.getChiPort().connect(memoryModel.getChiPort())) {
-        throw runtime_error("SoC failed to connect RN and Memory CHIPorts");
+      haModel("ha", envCfg, 0x02, 0x03),
+      memoryModel("memory", envCfg, 0x03),
+      topModules{&rnModel, &haModel, &memoryModel} {
+    if (!rnModel.getChiPort().connect(haModel.getRnPort())) {
+        throw runtime_error("SoC failed to connect RN and HA CHIPorts");
+    }
+    if (!haModel.getMemoryPort().connect(memoryModel.getChiPort())) {
+        throw runtime_error("SoC failed to connect HA and Memory CHIPorts");
     }
 }
 
@@ -59,6 +63,10 @@ const chi::CHIDatFlit& SoC::getReadData() const {
 
 const rn::RN& SoC::getRn() const {
     return rnModel;
+}
+
+const ha::HA& SoC::getHa() const {
+    return haModel;
 }
 
 const memory::Memory& SoC::getMemory() const {
