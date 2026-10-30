@@ -1,0 +1,6 @@
+/top/build/
+/top/run/
+/top/CMakeUserPresets.json
+/IHI0050G_b_amba_chi_architecture_spec.pdf
+__pycache__/
+*.py[cod]
