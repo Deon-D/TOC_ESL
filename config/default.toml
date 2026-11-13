@@ -1,0 +1,35 @@
+[clock]
+period_ps = 1000
+[platform]
+max_cycles = 1000000
+timeout_cycles = 10000
+[log]
+level = "info"
+console = true
+directory = "log"
+[log.models]
+"vip.hn" = "info"
+[rn]
+count = 2
+cache_lines = 64
+request_slots = 16
+snoop_slots = 8
+pending_operations = 64
+[hn]
+request_slots = 16
+grant_before_retry = false
+[sn]
+request_slots = 16
+service_latency = 5
+grant_before_retry = false
+[workload]
+requests = 256
+seed = 1
+memory_size = 1048576
+start_address = 0
+issue_interval_cycles = 1
+address_mode = "sequential"
+write_percent = 25
+[output]
+json = "result.json"
+trace = ""

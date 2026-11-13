@@ -1,32 +1,26 @@
-# Repository Guidelines
+# 项目协作约定
 
-## Project Structure & Module Organization
+本仓库以 CHI RN/HN/SN VIP 为唯一实现主线。开始工作先读 [项目规范](doc/project_standards.md)，按任务查阅 [代码规范](doc/cpp_style.md)、[构建与运行](doc/build_and_run.md) 和相关组件架构。本文是速查入口，详细规则维护在对应文档中。
 
-`model/` contains reusable C++17 models. Each implemented component (`Common`, `ChiCommon`, `RN`, `HA`, `Memory`, and `SoC`) keeps public headers directly in `include/`, implementation files in `src/`, and its target definition in `CMakeLists.txt`. `top/` is the executable and integration layer: `top/src/main.cpp` builds `tocEslSim`, while `top/tests/` contains contract and subsystem tests. Put scenario inputs in `benchmark/`, design notes in `doc/`, and development utilities in the intentionally named `scrpits/` directory. Never commit generated content from `top/build/` or `top/run/`, or the local CHI specification PDF.
+## 工作边界
 
-## Build, Test, and Development Commands
+- 先查看工作区状态并阅读受影响实现，保留已有修改，不恢复已清理的旧子系统。
+- 构建产物、运行输出和本地 CHI 规范 PDF 不入库；新增输出路径时同步检查 `.gitignore`。
+- RN/HN/SN 分别位于 `model/chi_vip/rn`、`hn`、`sn`；默认系统位于 `model/chi_vip/system`，应用入口为 `top/sim_main.cpp`。
+- 核心仅依赖标准库和 CHI 载荷，运输层接 CHIPort，平台适配才接 ModelBase。日志和 TOML 不得进入核心。
+- 节点之间通过 CHI 交换消息，不读取对端缓存或事务表。SNP 目的节点放运输元信息，不扩展标准 flit。
+- 保持所有 Work 先于所有 Xfer；Commit 发布外部视图和完成，不提供事务回滚；发送确认下周期交付。TX 入队、实际发送、完成及资源回收分别处理。
+- 不以逐周期扫描全部事务替代事件和资源唤醒；不以关闭检查、伪造完成或延迟补丁掩盖协议错误。
 
-Use the dedicated WSL Debian 12 environment; configuration rejects compilers other than GCC 12.2.x.
+## 代码与验证
 
-```bash
-cmake -S top -B top/build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
-cmake --build top/build/debug --parallel
-ctest --test-dir top/build/debug --output-on-failure
-./top/build/debug/tocEslSim
-```
+- C++17、Python 3.10.x；C++ 使用 clang-format 18 和仓库 `.clang-format`。代码注释及运行消息用英文，设计文档用中文。
+- 普通背压返回状态；合法访问错误通过完成报告；未支持能力与协议违规使用对应错误分类。
+- 按[变更验收矩阵](doc/project_standards.md#7-测试与变更验收)选择检查。纯文档改动核对事实和链接即可，不要求重跑全量仿真。
+- 核心改动保持独立 VIP 构建可用；时序、资源和运输改动检查真实节点连接、压力、反转遍历及排空。预期结果不调用主动模型的规则处理函数。
+- 命令及本机 WSL 路径见构建文档；机器路径不是源码约束。格式检查需显式运行，不会由普通 CTest 自动完成。
+- 交付时说明改动、实际验证和未覆盖项；不把此前的通过数量或未执行检查作为本次结果。
 
-Repeat with `top/build/release` and `-DCMAKE_BUILD_TYPE=Release` before merging changes that affect model behavior. Run `bash scrpits/checkToolchain.sh` to validate the configured compiler and C++17 runtime.
+## 文档维护
 
-## Coding Style & Naming Conventions
-
-Use four-space indentation and follow existing C++ formatting. Warnings (`-Wall -Wextra -Wpedantic`) are errors. Use lowerCamelCase for variables, functions, targets, tests, scripts, and internal directories; use UpperCamelCase for types and their matching files, such as `BaseModule.h`. Macros use `UPPER_SNAKE_CASE`. All project symbols belong under the `toc` root namespace. Public headers stay directly under a component’s `include/` directory. Follow the established project convention of `using namespace std;` instead of repeated `std::` qualifiers.
-
-Every model derives from `BaseModule`, implements `work()` and `xfer()`, owns its `CHIPort`, and communicates with other models only through CHI ports. SoC connects ports and advances the shared `EnvCfg` cycle.
-
-## Testing Guidelines
-
-Tests are standalone CTest executables named `*Test.cpp`; registered tests use lowerCamelCase names ending in `Contract`. Add focused tests under `top/tests/<feature>/` and register that directory in `top/CMakeLists.txt`. There is no percentage coverage target; cover cycle visibility, credit/backpressure behavior, invalid inputs, and returned data for changed protocols.
-
-## Commit & Pull Request Guidelines
-
-Use short imperative commit subjects, following the initial history style: `Initial ESL platform with RN memory read path`. Keep commits scoped to one behavior or interface. Pull requests should explain the trigger, resulting behavior, affected protocol flow, and Debug/Release validation. Link relevant issues and include logs or traces when timing or transaction ordering changes; screenshots are only useful for new visual tooling.
+公共接口、支持能力、配置、输出或组件流程变更时，同步更新其主要文档及相关测试。以当前代码和规范证据核对现状，区分必须保持的约束、现有局限与未来规划。仓库规范不额外引入日常修改的审批流程。

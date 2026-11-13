@@ -1,6 +1,16 @@
-/top/build/
-/top/run/
-/top/CMakeUserPresets.json
-/IHI0050G_b_amba_chi_architecture_spec.pdf
+# Local build trees and run output; test fixtures remain trackable.
+/build/
+/build-*/
+/out/
+/log/
+/result.json
+/events.csv
+/vip_runner_logs/
+/tmp/
+/CMakeUserPresets.json
+
+# Local reference document, not distributed with the project.
+/doc/IHI0050G_b_amba_chi_architecture_spec.pdf
+
 __pycache__/
 *.py[cod]
